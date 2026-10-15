@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pharmaceutical Commercial Analytics — Dashboard</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true">
+        <g transform="rotate(-45 20 20)">
+          <rect x="6" y="13" width="28" height="14" rx="7" fill="#1F3864"></rect>
+          <path d="M20 13 h7 a7 7 0 0 1 0 14 h-7 z" fill="#2E8B9A"></path>
+        </g>
+      </svg>
+      <span>Pharma<br>Analytics</span>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-btn active" data-page="overview">Overview</button>
+      <button class="nav-btn" data-page="time">Time Patterns</button>
+      <button class="nav-btn" data-page="cats">ATC Categories</button>
+    </nav>
+
+    <div class="side-foot">
+      <button class="reset" id="resetBtn">&#8634; Reset filters</button>
+      <p class="side-note">Data: Kaggle<br><em>Pharma sales data</em><br>Milan Zdravkovic<br>CC BY-NC 4.0</p>
+      <p class="side-warn">&#8364; figures estimated<br>Units = real source</p>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="page-head">
+      <div class="titles">
+        <h1>Pharmacy Sales &amp; Profitability Analysis</h1>
+        <p id="pageSub">Commercial overview &mdash; real POS data 2014&ndash;2019, &#8364; figures estimated</p>
+      </div>
+      <div class="slicers">
+        <label class="slicer"><span>ATC Category</span><select id="sCat"></select></label>
+        <label class="slicer"><span>Year</span><select id="sYear"></select></label>
+        <label class="slicer"><span>Weekday</span><select id="sDow"></select></label>
+        <button class="icon-btn" id="resetBtn2" title="Reset all filters">&#8634;</button>
+      </div>
+    </header>
+
+    <section class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-lbl">EST. REVENUE</div>
+        <div class="kpi-val" id="kRev">&mdash;</div>
+        <div class="kpi-ctx"><span class="chip" id="kRevChip">&mdash;</span><span class="ctx" id="kRevCtx"></span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">EST. GROSS PROFIT</div>
+        <div class="kpi-val" id="kProf">&mdash;</div>
+        <div class="kpi-ctx"><span class="chip" id="kProfChip">&mdash;</span><span class="ctx" id="kProfCtx"></span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">GROSS MARGIN %</div>
+        <div class="kpi-val" id="kMarg">&mdash;</div>
+        <div class="kpi-ctx"><span class="chip" id="kMargChip">&mdash;</span><span class="ctx" id="kMargCtx"></span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">UNITS SOLD <span class="real-tag">REAL</span></div>
+        <div class="kpi-val" id="kUnits">&mdash;</div>
+        <div class="kpi-ctx"><span class="chip" id="kUnitsChip">&mdash;</span><span class="ctx" id="kUnitsCtx"></span></div>
+      </div>
+    </section>
+
+    <!-- ================= OVERVIEW ================= -->
+    <div class="page" id="page-overview">
+      <div class="toolbar">
+        <div class="seg" id="segMetric">
+          <button data-m="rev" class="on">Revenue</button>
+          <button data-m="profit">Profit</button>
+          <button data-m="units">Units</button>
+        </div>
+        <span class="hint">Click any bar, column or table row to filter &middot; slicers top-right</span>
+      </div>
+      <div class="grid">
+        <div class="panel span4">
+          <h3 id="ovCatTitle">Est. Revenue by Category</h3>
+          <div class="chart" id="chOvCat"></div>
+        </div>
+        <div class="panel span4">
+          <h3 id="ovYearTitle">Est. Revenue by Year</h3>
+          <div class="chart" id="chOvYear"></div>
+        </div>
+        <div class="panel span4">
+          <h3 id="ovMixTitle">Revenue Mix by Category</h3>
+          <div class="chart" id="chOvMix"></div>
+        </div>
+        <div class="panel span5">
+          <h3 id="ovDowTitle">Units by Weekday</h3>
+          <div class="chart" id="chOvDow"></div>
+        </div>
+        <div class="panel span7">
+          <h3>Category Performance <em>like-for-like YoY &amp; outperform flags</em></h3>
+          <div class="tbl-wrap" id="tblCats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TIME PATTERNS ================= -->
+    <div class="page hidden" id="page-time">
+      <div class="grid">
+        <div class="panel span7">
+          <h3 id="trendTitle">Revenue Trend &amp; Variance</h3>
+          <div class="chart tall" id="chTrend"></div>
+        </div>
+        <div class="panel span5">
+          <h3>Monthly Seasonality Index <em>1.00 = average month</em></h3>
+          <div class="chart tall" id="chSeason"></div>
+        </div>
+        <div class="panel span12">
+          <h3>Trading-Hour Heatmap <em>average units by weekday &times; hour &middot; whole period, not slicer-filtered</em></h3>
+          <div id="heatmap"></div>
+        </div>
+        <div class="panel span6">
+          <h3 id="qTitle">Quarterly Revenue</h3>
+          <div class="chart" id="chQuarter"></div>
+        </div>
+        <div class="panel span6">
+          <h3 id="longTitle">Monthly Revenue Trend</h3>
+          <div class="chart" id="chLong"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= ATC CATEGORIES ================= -->
+    <div class="page hidden" id="page-cats">
+      <div class="grid">
+        <div class="panel span5">
+          <h3>Like-for-Like Growth by Category <em>1 Jan&ndash;8 Oct 2019 vs same period 2018</em></h3>
+          <div class="chart" id="chGrowth"></div>
+        </div>
+        <div class="panel span7">
+          <h3>Category Detail <em>rank, margin, LFL growth, flags</em></h3>
+          <div class="tbl-wrap" id="tblDetail"></div>
+        </div>
+        <div class="panel span4">
+          <h3>Estimation Assumptions</h3>
+          <div class="tbl-wrap" id="tblAssump"></div>
+        </div>
+        <div class="panel span4">
+          <h3>Units Share vs Revenue Share</h3>
+          <div class="chart" id="chShare"></div>
+        </div>
+        <div class="panel span4">
+          <h3>Therapy Areas <em>ATC classification</em></h3>
+          <div class="tbl-wrap" id="tblTherapy"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="page-foot">
+      Data: Kaggle &laquo;Pharma sales data&raquo; by Milan Zdravkovic (CC BY-NC 4.0) &mdash;
+      2 Jan 2014 to 8 Oct 2019, one pharmacy, 8 ATC groups.
+      Units are real source values; &#8364; revenue / cost / profit are estimates
+      (units &times; assumed unit price and margin). 2019 is a partial year &mdash;
+      its YoY is like-for-like (1 Jan&ndash;8 Oct vs same period 2018).
+    </footer>
+  </main>
+</div>
+
+<script src="data.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

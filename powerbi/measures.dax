@@ -1,0 +1,121 @@
+// ============================================================
+// Pharmaceutical Commercial Analytics — Power BI DAX measures
+// REAL Kaggle POS data (2014-01-02 .. 2019-10-08), 8 ATC categories.
+// Fact: SalesData (daily x category) | Date table marked as date |
+// Category dim | HourProfile (standalone, heatmap only). See data_model.md.
+// NOTE: Units are real source values. EUR measures are ESTIMATES
+// (units x assumed price; see README sheet in the Excel workbook).
+// ============================================================
+
+// ---------------- Base measures ----------------
+Total Units Sold = SUM ( SalesData[Units] )                      // REAL
+Est. Revenue = SUM ( SalesData[EstRevenue] )                     // estimated
+Est. Cost = SUM ( SalesData[EstCost] )                           // estimated
+Est. Gross Profit = [Est. Revenue] - [Est. Cost]                 // estimated
+Gross Margin % = DIVIDE ( [Est. Gross Profit], [Est. Revenue] )
+Avg Units per Trading Day =
+    DIVIDE ( [Total Units Sold], DISTINCTCOUNT ( SalesData[Date] ) )
+Trading Days = DISTINCTCOUNT ( SalesData[Date] )
+Avg Units per Month = DIVIDE ( [Total Units Sold], DISTINCTCOUNT ( SalesData[YearMonth] ) )
+
+// ---------------- Like-for-like YoY (handles 2019 partial year) ----------------
+// Compares the selected window with the SAME period of the prior year:
+// e.g. selection ending 8 Oct 2019 -> 1 Jan - 8 Oct 2018.
+Revenue LFL YoY % =
+VAR LastD = CALCULATE ( MAX ( 'Date'[Date] ), ALLSELECTED ( 'Date' ) )
+VAR CurStart = DATE ( YEAR ( LastD ), 1, 1 )
+VAR PriStart = DATE ( YEAR ( LastD ) - 1, 1, 1 )
+VAR PriEnd = DATE ( YEAR ( LastD ) - 1, MONTH ( LastD ), DAY ( LastD ) )
+VAR Cur = CALCULATE ( [Est. Revenue], DATESBETWEEN ( 'Date'[Date], CurStart, LastD ) )
+VAR Pri = CALCULATE ( [Est. Revenue], DATESBETWEEN ( 'Date'[Date], PriStart, PriEnd ) )
+RETURN DIVIDE ( Cur - Pri, Pri )
+
+Units LFL YoY % =
+VAR LastD = CALCULATE ( MAX ( 'Date'[Date] ), ALLSELECTED ( 'Date' ) )
+VAR CurStart = DATE ( YEAR ( LastD ), 1, 1 )
+VAR PriStart = DATE ( YEAR ( LastD ) - 1, 1, 1 )
+VAR PriEnd = DATE ( YEAR ( LastD ) - 1, MONTH ( LastD ), DAY ( LastD ) )
+VAR Cur = CALCULATE ( [Total Units Sold], DATESBETWEEN ( 'Date'[Date], CurStart, LastD ) )
+VAR Pri = CALCULATE ( [Total Units Sold], DATESBETWEEN ( 'Date'[Date], PriStart, PriEnd ) )
+RETURN DIVIDE ( Cur - Pri, Pri )
+
+Profit LFL YoY % =
+VAR LastD = CALCULATE ( MAX ( 'Date'[Date] ), ALLSELECTED ( 'Date' ) )
+VAR CurStart = DATE ( YEAR ( LastD ), 1, 1 )
+VAR PriStart = DATE ( YEAR ( LastD ) - 1, 1, 1 )
+VAR PriEnd = DATE ( YEAR ( LastD ) - 1, MONTH ( LastD ), DAY ( LastD ) )
+VAR Cur = CALCULATE ( [Est. Gross Profit], DATESBETWEEN ( 'Date'[Date], CurStart, LastD ) )
+VAR Pri = CALCULATE ( [Est. Gross Profit], DATESBETWEEN ( 'Date'[Date], PriStart, PriEnd ) )
+RETURN DIVIDE ( Cur - Pri, Pri )
+
+// Prior-year value over the same window (for variance labels / ghost line)
+Est. Revenue Prior Year Same Period =
+VAR LastD = CALCULATE ( MAX ( 'Date'[Date] ), ALLSELECTED ( 'Date' ) )
+VAR PriStart = DATE ( YEAR ( LastD ) - 1, 1, 1 )
+VAR PriEnd = DATE ( YEAR ( LastD ) - 1, MONTH ( LastD ), DAY ( LastD ) )
+RETURN CALCULATE ( [Est. Revenue], DATESBETWEEN ( 'Date'[Date], PriStart, PriEnd ) )
+
+// Monthly variance vs prior year (works month by month on the trend chart)
+Est. Revenue Same Month Last Year =
+CALCULATE ( [Est. Revenue], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+Revenue MoM Delta = [Est. Revenue] - [Est. Revenue Same Month Last Year]
+
+// Full-year comparisons (2015-2018 only; 2019 is partial - use LFL above)
+Est. Revenue LY = CALCULATE ( [Est. Revenue], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+Est. Revenue FY YoY % = DIVIDE ( [Est. Revenue] - [Est. Revenue LY], [Est. Revenue LY] )
+Units FY YoY % =
+VAR U = [Total Units Sold]
+VAR ULY = CALCULATE ( [Total Units Sold], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+RETURN DIVIDE ( U - ULY, ULY )
+
+// ---------------- Averages / seasonality ----------------
+Avg Monthly Revenue = DIVIDE ( [Est. Revenue], DISTINCTCOUNT ( SalesData[YearMonth] ) )
+Seasonality Index = DIVIDE ( [Est. Revenue], [Avg Monthly Revenue] )   // use with a month selection
+
+Avg Revenue per Category =
+    AVERAGEX ( ALLSELECTED ( Category[Category] ), [Est. Revenue] )
+Avg Profit per Category =
+    AVERAGEX ( ALLSELECTED ( Category[Category] ), [Est. Gross Profit] )
+
+// ---------------- Shares / ranks ----------------
+Revenue Share % =
+    DIVIDE ( [Est. Revenue],
+             CALCULATE ( [Est. Revenue], REMOVEFILTERS ( Category ), REMOVEFILTERS ( 'Date' ) ) )
+
+Category Rank by Revenue =
+    RANKX ( ALLSELECTED ( Category[Category] ), [Est. Revenue],, DESC, DENSE )
+
+Top Category =
+    VAR T = TOPN ( 1, VALUES ( Category[Category] ), [Est. Revenue] )
+    RETURN SELECTEDVALUE ( Category[Category] )
+
+// ---------------- Flags (reference-dashboard style) ----------------
+Outperform Flag =
+    IF ( [Est. Gross Profit] >= [Avg Profit per Category],
+         "Outperforming", "Below Average" )
+
+Growth Flag =
+    SWITCH ( TRUE (),
+        [Revenue LFL YoY %] >= 0.05, "Accelerating",
+        [Revenue LFL YoY %] >= 0,    "Growing",
+                                     "Declining" )
+
+// ---------------- Metric switcher (cards / contribution chart) ----------------
+// Recommended: Insert > Field parameters > Values (format-aware).
+// Fallback with the Metric table (Revenue | Profit | Units):
+Display Value =
+    SWITCH (
+        SELECTEDVALUE ( 'Metric'[Metric], "Revenue" ),
+        "Revenue", [Est. Revenue],
+        "Profit",  [Est. Gross Profit],
+        "Units",   [Total Units Sold],
+        [Est. Revenue]
+    )
+
+// ---------------- Card context lines ----------------
+LFL Context =
+    "2019 YTD vs 2018: " & FORMAT ( [Revenue LFL YoY %], "+0.0%;-0.0%" ) & " (like-for-like)"
+
+Margin Context = "Blended from assumed category margins (estimated)"
+Units Context = "REAL units - avg " & FORMAT ( [Avg Units per Trading Day], "#,##0" ) & " / trading day"
+Profit Context = "Est. cost of goods: " & FORMAT ( [Est. Cost], "€0.0,," ) & "M"
