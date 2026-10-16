@@ -69,6 +69,55 @@ Power BI Desktop GUI (model ≈10 min, three pages ≈35 min). After replacing t
 CSVs, use **Refresh** — all measures and visuals recompute; the HTML dashboard
 picks up `data.js` on reload.
 
+## SQL usage
+
+The fact table doubles as a SQL dataset: five query packs in [`sql/`](sql/)
+answer the same three business questions using window functions (`RANK`,
+`LAG`), like-for-like `CASE` windows and pivot-style conditional aggregation.
+One command builds a SQLite database from the CSVs and runs every pack —
+**15 result sets**, verified against the Excel, DAX and JS numbers:
+
+```bash
+python scripts/04_sql_analytics.py   # → data/pharma_sales.db + all query results
+```
+
+Extract from the category league table
+([`sql/03_category_league_table.sql`](sql/03_category_league_table.sql)):
+
+```sql
+SELECT Category,
+       ROUND(SUM(EstRevenue), 0)     AS est_revenue_eur,
+       ROUND(100.0 * SUM(EstRevenue)
+             / (SELECT SUM(EstRevenue) FROM fact_sales), 1)
+                                      AS revenue_share_pct,
+       RANK() OVER (ORDER BY SUM(EstRevenue) DESC)
+                                      AS revenue_rank
+FROM   fact_sales
+GROUP  BY Category
+ORDER  BY revenue_rank;
+```
+
+```text
+Category         | est_revenue_eur | revenue_share_pct | revenue_rank
+-----------------+-----------------+-------------------+-------------
+Anti-Asthmatics  | 191545          | 31.1              | 1
+Paracetamol      | 151213          | 24.5              | 2
+Anxiolytics      | 128655          | 20.9              | 3
+Antihistamines   | 50084           | 8.1               | 4
+NSAIDs-Acetic    | 32861           | 5.3               | 5
+NSAIDs-Propionic | 29537           | 4.8               | 6
+Salicylates      | 22882           | 3.7               | 7
+Hypnotics        | 9250            | 1.5               | 8
+```
+
+The full pack adds units, profit, margin, like-for-like YoY and outperform
+flags; the growth pack (`04`) enforces the partial-year rule with `CASE WHEN
+Date BETWEEN …` windows, and the time packs (`05`, `06`) pivot month×year and
+weekday×hour matrices via conditional aggregation. All statements are
+SQLite-verified ANSI SQL (PostgreSQL / MySQL 8 / SQL Server compatible — type
+notes in `01_schema.sql`). Full catalogue, run modes and caveats:
+[`sql/README.md`](sql/README.md).
+
 ## Repository
 
 Built for and pushed to

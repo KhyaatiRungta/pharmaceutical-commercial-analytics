@@ -393,6 +393,9 @@ r = bullet(ws, r, "REFRESH / REBUILD", font=F_BOLD)
 r = bullet(ws, r, "python scripts/01_prepare_kaggle_data.py && python scripts/02_build_excel.py "
                   "— or replace the rows in Sales_Data keeping the same columns; all formulas "
                   "and charts recalculate.")
+r = bullet(ws, r, "SQL: python scripts/04_sql_analytics.py rebuilds data/pharma_sales.db from "
+                  "the same CSVs and runs the five query packs in sql/ (15 result sets) — "
+                  "the workbook, the dashboard and SQL all recompute from one fact table.")
 ws.freeze_panes = "A4"
 
 # ---------------------------------------------------------- 2. SALES_DATA

@@ -65,10 +65,12 @@ its comparisons are **like-for-like** (1 Jan–8 Oct vs the identical window of
 5. **Grow value, not just volume.** Pair high-traffic Paracetamol availability
    with counselling/up-sell to higher-margin categories; Anti-Asthmatics earn
    €16.49 est. revenue per unit — protect their availability first.
-6. **Institutionalise the measurement loop.** Re-run the three scripts monthly
-   on the same extract and review the KPI cards (units, est. revenue/margin,
-   LFL YoY, flags) in a standing commercial meeting; when real revenue data
-   becomes available, swap the price/margin assumptions in
+6. **Institutionalise the measurement loop.** Re-run the four scripts monthly
+   on the same extract (`01` refreshes the fact table; `02`, `03` and `04`
+   rebuild the workbook, the dashboard payload and the SQL database) and
+   review the KPI cards (units, est. revenue/margin, LFL YoY, flags) in a
+   standing commercial meeting; when real revenue data becomes available,
+   swap the price/margin assumptions in
    `scripts/01_prepare_kaggle_data.py` and everything downstream recomputes.
 
 ## Method & caveats
@@ -83,9 +85,14 @@ its comparisons are **like-for-like** (1 Jan–8 Oct vs the identical window of
   script.
 - **Partial-year handling.** 2019 ends 8 Oct: its YoY compares 1 Jan–8 Oct
   2019 with the identical window of 2018. 2015–2018 use full-year
-  comparisons. The DAX/JS/Excel implementations share this rule.
+  comparisons. The SQL/DAX/JS/Excel implementations share this rule.
 - **Outperform flags** compare a category's estimated gross profit with the
   average of the eight categories under the current filter.
-- **No hard-coded results.** Excel cells are live formulas; the DAX measures
-  and the HTML dashboard recompute from the same fact table, so refreshing the
-  data refreshes every number in this document's source visuals.
+- **No hard-coded results.** Excel cells are live formulas; the SQL queries,
+  the DAX measures and the HTML dashboard all recompute from the same fact
+  table, so refreshing the data refreshes every number in this document's
+  source visuals.
+- **Reproduce in SQL.** `python scripts/04_sql_analytics.py` builds a SQLite
+  copy of the fact table and executes the five packs in `sql/` — every figure
+  in this document has a matching query (KPI overview, category league table,
+  like-for-like YoY, time patterns, trading-hour heatmap).

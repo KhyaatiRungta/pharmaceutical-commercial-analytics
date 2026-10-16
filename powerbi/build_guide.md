@@ -164,3 +164,6 @@ Units) — the reference's button group, minus geography.
 - [ ] Heatmap: evening peak **19:00**, ramp from **07:00**, Saturday strongest day
 - [ ] Flags: Anti-Asthmatics/Paracetamol/Anxiolytics *Outperforming*, rest red
 - [ ] Slicers sync across pages; Reset clears; cards don't self-filter
+- [ ] SQL cross-check: `python scripts/04_sql_analytics.py` prints the same
+      KPIs, league table, LFL figures and heatmap peak (15 result sets) — the
+      DAX numbers above must match its output
