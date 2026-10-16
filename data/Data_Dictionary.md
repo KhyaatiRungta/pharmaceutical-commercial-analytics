@@ -50,6 +50,17 @@ average profile.
 | AvgUnits | Average real units per occurrence of that weekday-hour |
 | AvgEstRevenue | Same, converted with the price assumptions (estimated) |
 
+## `data/pharma_sales.db` (generated — not committed)
+
+SQLite database built from the two CSVs above by
+`scripts/04_sql_analytics.py` (it executes `sql/01_schema.sql`, loads the
+CSVs, then runs every query in `sql/`). Tables `fact_sales` and
+`hour_profile` mirror the CSV columns exactly. Rebuild any time with:
+
+```bash
+python scripts/04_sql_analytics.py
+```
+
 ## Assumptions applied (documented, adjustable in `01_prepare_kaggle_data.py`)
 
 | ATC | Category | Therapy area | €/unit | Margin |

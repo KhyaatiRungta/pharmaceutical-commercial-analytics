@@ -1,4 +1,4 @@
-# Pharmaceutical Commercial Analytics — Excel · Power BI · HTML
+# Pharmaceutical Commercial Analytics — Excel · Power BI · SQL · HTML
 
 A commercial analytics portfolio project built on **real pharmacy point-of-sale
 data** (Kaggle, 2014–2019, 8 ATC drug groups). It answers three business
@@ -23,8 +23,9 @@ questions:
 | [`excel/Pharma_Sales_Analysis.xlsx`](excel/Pharma_Sales_Analysis.xlsx) | 6-sheet workbook: KPI dashboard, category analysis, time analysis (incl. weekday×hour heatmap), findings. **Every cell is a live formula** (SUMIFS/INDEX-MATCH) over the 16,848-row fact table — no hard-coded numbers. |
 | [`powerbi/`](powerbi/) | Complete Power BI build kit: `measures.dax` (like-for-like YoY, flags, switchers), `data_model.md` (table/relationship recipe), `build_guide.md` (click-by-click for 3 pages matching the Excel/HTML design). |
 | [`dashboard/`](dashboard/) | **Zero-dependency HTML dashboard** (vanilla JS + SVG, no CDN). Three pages — Overview, Time Patterns, ATC Categories — with slicers, metric toggle (Revenue/Profit/Units), cross-filtering, a trading-hour heatmap and reference-style KPI cards. Just open `dashboard/index.html` in a browser. |
+| [`sql/`](sql/) | **SQL analytics layer** — schema + 5 query packs over the fact table: KPI overview, category league table (RANK + flags), like-for-like YoY (CASE windows + LAG), time patterns (pivot-style conditional aggregation), weekday×hour heatmap. Verified on SQLite; see [`sql/README.md`](sql/README.md). |
 | [`data/`](data/) | Raw Kaggle extracts (`kaggle_raw/`), the prepared fact table, the hour profile, and a full [data dictionary](data/Data_Dictionary.md). |
-| [`scripts/`](scripts/) | Three reproducible Python scripts: `01_prepare_kaggle_data.py` → fact table, `02_build_excel.py` → workbook, `03_export_dashboard_data.py` → dashboard payload. |
+| [`scripts/`](scripts/) | Four reproducible Python scripts: `01_prepare_kaggle_data.py` → fact table, `02_build_excel.py` → workbook, `03_export_dashboard_data.py` → dashboard payload, `04_sql_analytics.py` → SQLite database + runs every SQL query. |
 | [`Findings_and_Recommendations.md`](Findings_and_Recommendations.md) | What the analysis found and what to do about it. |
 
 ## Headline numbers
@@ -60,6 +61,7 @@ verbatim in `data/kaggle_raw/`.
 python scripts/01_prepare_kaggle_data.py   # raw CSVs → fact table + hour profile
 python scripts/02_build_excel.py           # fact table → Excel workbook
 python scripts/03_export_dashboard_data.py # fact table → dashboard/data.js
+python scripts/04_sql_analytics.py         # fact table → SQLite db, runs all SQL queries
 ```
 
 Power BI: follow [`powerbi/build_guide.md`](powerbi/build_guide.md) in the
@@ -73,5 +75,5 @@ Built for and pushed to
 [`github.com/KhyaatiRungta/pharmaceutical-commercial-analytics`](https://github.com/KhyaatiRungta/pharmaceutical-commercial-analytics)
 — the dashboard is also published via GitHub Pages at
 `khyaatirungta.github.io/pharmaceutical-commercial-analytics/dashboard/`.
-Tools: Python (pandas + openpyxl), Power BI Desktop (DAX), vanilla
-HTML/CSS/JS.
+Tools: Python (pandas + openpyxl), Power BI Desktop (DAX), SQL (SQLite),
+vanilla HTML/CSS/JS.

@@ -1,0 +1,17 @@
+# Generated database (rebuild: python scripts/04_sql_analytics.py)
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Excel lock files
+~$*.xlsx
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.vscode/
