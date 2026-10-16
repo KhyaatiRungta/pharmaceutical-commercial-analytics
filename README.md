@@ -9,6 +9,9 @@ questions:
 3. **Where does performance need attention?** — like-for-like growth, seasonality,
    outperform flags
 
+▶ **[Live demo — interactive dashboard](https://khyaatirungta.github.io/pharmaceutical-commercial-analytics/dashboard/)**
+(zero dependencies, runs entirely in the browser)
+
 ![Dashboard preview](dashboard/preview.png)
 
 ---
@@ -67,6 +70,8 @@ picks up `data.js` on reload.
 ## Repository
 
 Built for and pushed to
-[`github.com/KhyaatiRungta/pharmaceutical-commercial-analytics`](https://github.com/KhyaatiRungta/pharmaceutical-commercial-analytics).
+[`github.com/KhyaatiRungta/pharmaceutical-commercial-analytics`](https://github.com/KhyaatiRungta/pharmaceutical-commercial-analytics)
+— the dashboard is also published via GitHub Pages at
+`khyaatirungta.github.io/pharmaceutical-commercial-analytics/dashboard/`.
 Tools: Python (pandas + openpyxl), Power BI Desktop (DAX), vanilla
 HTML/CSS/JS.
